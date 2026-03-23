@@ -20,12 +20,14 @@ import { SetRepoCommand } from './Commands/SetRepoCommand'
 import { initAxios } from './axios'
 import logo from './logo'
 import { useConfig } from './hooks'
+import { version } from '../package.json'
 
 class Application { }
 
 initAxios()
 Kernel.init(new Application(), {
     logo,
+    version,
     exceptionHandler (exception) {
         const [getConfig] = useConfig()
         const config = getConfig()
