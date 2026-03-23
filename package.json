@@ -36,7 +36,7 @@
         "toneflix"
     ],
     "scripts": {
-        "quick:test": "pnpm vitest",
+        "quick:test": "pnpm vitest --run",
         "test": "pnpm run quick:test",
         "lint": "eslint . --ext .ts --ext .js",
         "cmd": "tsx --experimental-specifier-resolution=node src/cli.ts",

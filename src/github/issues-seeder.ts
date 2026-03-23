@@ -16,6 +16,12 @@ import fs from 'fs'
 export class IssuesSeeder {
     private command: Command
 
+    private normalizeIssuePath (value: string): string {
+        return value
+            .replaceAll('\\', '/')
+            .replace(/^\.\//, '')
+    }
+
     constructor() {
         const [command] = useCommand()
         this.command = command()
@@ -30,10 +36,12 @@ export class IssuesSeeder {
     setFilePath (content: string, filePath?: string): string {
         if (!filePath) return content
 
+        const normalizedPath = this.normalizeIssuePath(filePath)
+
         if (content.includes('<!-- ghit#filepath:')) {
-            content = content.replace(/<!--\s*ghit#filepath:\s*.+?\s*-->/i, `<!-- ghit#filepath: ${filePath} -->`)
+            content = content.replace(/<!--\s*ghit#filepath:\s*.+?\s*-->/i, `<!-- ghit#filepath: ${normalizedPath} -->`)
         } else {
-            content = `<!-- ghit#filepath: ${filePath} -->\n\n` + content
+            content = `<!-- ghit#filepath: ${normalizedPath} -->\n\n` + content
         }
 
         return content
@@ -50,7 +58,7 @@ export class IssuesSeeder {
         const match = content.match(fileNameRegex)
 
         if (match) {
-            return match[1].trim()
+            return this.normalizeIssuePath(match[1].trim())
         }
 
         return undefined
@@ -227,7 +235,7 @@ export class IssuesSeeder {
         }
 
         return {
-            filePath: relativePath,
+            filePath: this.normalizeIssuePath(relativePath),
             title: metadata.title || metadata.name || fileName,
             type: metadata.type,
             body: body,
@@ -300,7 +308,7 @@ export class IssuesSeeder {
                     return `labels: ${labels}`
                 })
 
-                const filepath = path.dirname(filePath)
+                const filepath = path.relative(process.cwd(), filePath)
                 const filename = path.basename(filePath)
 
                 issues.push(this.prepareIssue(cleaned.trimStart() + '\n', filepath, filename))
