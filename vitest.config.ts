@@ -5,7 +5,7 @@ export default defineConfig({
     plugins: [tsconfigPaths()],
     test: {
         passWithNoTests: true,
-        pool: 'threads',
+        pool: process.platform === 'win32' ? 'forks' : 'threads',
         name: 'generic',
         environment: 'node',
         root: './',
