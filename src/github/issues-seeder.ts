@@ -253,11 +253,17 @@ export class IssuesSeeder {
      * @returns 
      */
     processIssueFile (filePath: string): IIssueFile {
-        const directory = join(process.cwd(), this.command.argument('path', 'issues'))
+        const configuredPath = this.command.argument('path', 'issues')
+        const directory = path.isAbsolute(configuredPath)
+            ? configuredPath
+            : path.resolve(process.cwd(), configuredPath)
         const content = fs.readFileSync(filePath, 'utf-8')
 
         // Extract wave and issue number from path
-        const relativePath = path.relative(directory, filePath)
+        let relativePath = path.relative(directory, filePath)
+        if (path.isAbsolute(relativePath)) {
+            relativePath = path.relative(process.cwd(), filePath)
+        }
         // const pathParts = relativePath.split(path.sep)
         // const wave = pathParts[0] // e.g., 'wave-1'
         const fileName = path.basename(filePath, '.md')
