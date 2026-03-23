@@ -1,7 +1,7 @@
 {
     "name": "ghit",
     "type": "module",
-    "version": "0.1.19",
+    "version": "0.1.20",
     "description": "A CLI tool for managing GitHub repositories, issues, and workflows from your terminal, combining custom workflows with full GitHub API coverage.",
     "main": "bin/cli.mjs",
     "private": false,

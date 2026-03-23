@@ -71,8 +71,9 @@ export class IssuesSeeder {
      * @returns 
      */
     parseFrontmatter (content: string) {
+        const normalizedContent = content.replace(/\r\n?/g, '\n')
         const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/
-        const match = content.match(frontmatterRegex)
+        const match = normalizedContent.match(frontmatterRegex)
 
         if (!match) {
             return { metadata: {}, body: content }
@@ -279,10 +280,10 @@ export class IssuesSeeder {
      */
     processMultiIssueMarkdown (filePath: string): IIssueFile[] {
         try {
-            const content = fs.readFileSync(filePath, 'utf-8')
+            const content = fs.readFileSync(filePath, 'utf-8').replace(/\r\n?/g, '\n')
 
             // Split on '++++++' or '======' that are on their own line
-            const rawIssues = content.split(/\n(\+{6}|={6})\n/)
+            const rawIssues = content.split(/\n[ \t]*(?:\+{6}|={6})[ \t]*\n/)
             const issues: IIssueFile[] = []
 
             for (const raw of rawIssues) {
@@ -290,7 +291,7 @@ export class IssuesSeeder {
                 if (!raw || !raw.trim()) continue
 
                 // Extract title
-                const titleMatch = raw.match(/title: (.+)/)
+                const titleMatch = raw.match(/^title:\s+(.+)$/im)
                 if (!titleMatch) continue
 
                 // Remove all blank lines between frontmatter blocks (---\n[blank lines]\n---)

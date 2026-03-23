@@ -1,7 +1,9 @@
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+
+import { IssuesSeeder } from '../src/github/issues-seeder'
 import path from 'node:path'
 import { tmpdir } from 'node:os'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { hookState, mockCommand } = vi.hoisted(() => {
     const hookState = {
@@ -38,7 +40,6 @@ vi.mock('src/hooks', () => ({
     useOctokit: vi.fn(),
 }))
 
-import { IssuesSeeder } from '../src/github/issues-seeder'
 
 describe('IssuesSeeder filesystem behavior', () => {
     let tempDir = ''
@@ -107,6 +108,62 @@ describe('IssuesSeeder filesystem behavior', () => {
         expect(issues[0]?.filePath).toBe(expectedPath)
         expect(issues[1]?.filePath).toBe(expectedPath)
         expect(issues[0]?.labels).toEqual(['bug', 'help wanted'])
+    })
+
+    it('processMultiIssueMarkdown parses multiple issues with CRLF line endings', () => {
+        const seeder = new IssuesSeeder()
+        const issueFile = path.join(tempDir, 'bulk', 'seed-windows.md')
+
+        mkdirSync(path.dirname(issueFile), { recursive: true })
+        writeFileSync(issueFile, [
+            '---',
+            'title: Issue 1 title',
+            '---',
+            'Body one',
+            '======',
+            '---',
+            'title: Issue 2 title',
+            '---',
+            'Body two',
+            '++++++',
+            '---',
+            'title: Issue 3 title',
+            '---',
+            'Body three',
+        ].join('\r\n'), 'utf8')
+
+        const issues = seeder.processMultiIssueMarkdown(issueFile)
+
+        expect(issues).toHaveLength(3)
+        expect(issues.map(i => i.title)).toEqual(['Issue 1 title', 'Issue 2 title', 'Issue 3 title'])
+    })
+
+    it('processMultiIssueMarkdown parses separators with surrounding whitespace', () => {
+        const seeder = new IssuesSeeder()
+        const issueFile = path.join(tempDir, 'bulk', 'seed-whitespace-separators.md')
+
+        mkdirSync(path.dirname(issueFile), { recursive: true })
+        writeFileSync(issueFile, [
+            '---',
+            'title: First issue',
+            '---',
+            'Body one',
+            '   ======   ',
+            '---',
+            'title: Second issue',
+            '---',
+            'Body two',
+            '\t++++++\t',
+            '---',
+            'title: Third issue',
+            '---',
+            'Body three',
+        ].join('\n'), 'utf8')
+
+        const issues = seeder.processMultiIssueMarkdown(issueFile)
+
+        expect(issues).toHaveLength(3)
+        expect(issues.map(i => i.title)).toEqual(['First issue', 'Second issue', 'Third issue'])
     })
 
     it('getIssueFiles reads markdown files recursively and returns sorted paths', () => {
