@@ -1,24 +1,25 @@
 import { Command, Kernel } from '@h3ravel/musket'
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { existsSync, mkdirSync, rmSync, unlinkSync } from 'fs'
 import { init, useDb, useDbPath } from '../src/db'
+import { mkdtempSync, rmSync } from 'fs'
 import { useCommand, useConfig, useShortcuts } from '../src/hooks'
 
 import { afterAll } from 'vitest'
 import path from 'path'
+import { tmpdir } from 'os'
 
 class App {
     registeredCommands: typeof Command[] = []
 }
 
 let app, program: any
+const tempDbDir = mkdtempSync(path.join(tmpdir(), 'ghit-hooks-spec-'))
+const [getDatabase, setDatabase] = useDb()
 
 beforeAll(async () => {
     const [__, setDbPath] = useDbPath()
-    const [_, setDatabase] = useDb()
 
-    mkdirSync('./tests/temp-db', { recursive: true })
-    setDbPath('./tests/temp-db')
+    setDbPath(tempDbDir)
     setDatabase('testdb.db')
     init()
 
@@ -35,12 +36,8 @@ beforeAll(async () => {
 })
 
 afterAll(() => {
-    if (existsSync(path.join('tests/temp-db', 'testdb.db'))) {
-        unlinkSync(path.join('tests/temp-db', 'testdb.db'))
-        unlinkSync(path.join('tests/temp-db', 'testdb.db-shm'))
-        unlinkSync(path.join('tests/temp-db', 'testdb.db-wal'))
-        rmSync('./tests/temp-db', { recursive: true, force: true })
-    }
+    getDatabase().close()
+    rmSync(tempDbDir, { recursive: true, force: true })
 })
 
 describe('Hooks Test', () => {

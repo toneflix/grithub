@@ -1,11 +1,11 @@
 import { IIssue, IIssueFile, IIssueMetadata } from 'src/Contracts/Interfaces'
-import path, { join } from 'path'
 import { useCommand, useOctokit } from 'src/hooks'
 
 import { Command } from '@h3ravel/musket'
 import { Logger } from '@h3ravel/shared'
 import dns from 'dns/promises'
 import fs from 'fs'
+import path from 'path'
 
 /**
  * GitHub Issues Creator

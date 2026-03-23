@@ -1,17 +1,18 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { clear, init, keys, read, remove, useDb, useDbPath, write } from '../src/db'
-import { existsSync, mkdirSync, rmSync, unlinkSync } from 'fs'
+import { mkdtempSync, rmSync } from 'fs'
 
 import path from 'path'
+import { tmpdir } from 'os'
 
 describe('Database Test', () => {
     const [_, setDbPath] = useDbPath()
+    const [getDatabase, setDatabase] = useDb()
+    const tempDbDir = mkdtempSync(path.join(tmpdir(), 'ghit-db-spec-'))
 
-    mkdirSync('./tests/temp-db', { recursive: true })
-    setDbPath('./tests/temp-db')
+    setDbPath(tempDbDir)
 
     beforeAll(() => {
-        const [_, setDatabase] = useDb()
         setDatabase('testdb.db')
         init()
     })
@@ -21,12 +22,8 @@ describe('Database Test', () => {
     })
 
     afterAll(() => {
-        if (existsSync(path.join('tests/temp-db', 'testdb.db'))) {
-            unlinkSync(path.join('tests/temp-db', 'testdb.db'))
-            unlinkSync(path.join('tests/temp-db', 'testdb.db-shm'))
-            unlinkSync(path.join('tests/temp-db', 'testdb.db-wal'))
-            rmSync('./tests/temp-db', { recursive: true, force: true })
-        }
+        getDatabase().close()
+        rmSync(tempDbDir, { recursive: true, force: true })
     })
 
     it('should write and read data correctly', () => {
