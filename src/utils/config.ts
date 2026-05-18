@@ -23,7 +23,7 @@ export const configChoices = (config: IConfig) => {
         {
             name: 'Use Current Repo for Commands',
             value: 'useCurrentRepo',
-            description: `Enable or disable automatic detection of the current git repository for commands that support it (${config.useCurrentRepo ? 'Enabled' : 'Disabled'})`
+            description: `Enable or disable automatic detection of the current git repository for commands that support it (${config.useCurrentRepo === true ? 'Enabled' : (config.useCurrentRepo === 'repo' ? 'Repo Only' : 'Disabled')})`
         },
         {
             name: 'Skip Long Command Generation',
@@ -68,11 +68,12 @@ export const saveConfig = async (choice: keyof IConfig) => {
     } else if (choice === 'useCurrentRepo') {
         const useCurrentRepo = await command()
             .choice(
-                `Enable automatic detection of the current git repository for commands that support it? (${config.useCurrentRepo ? 'Enabled' : 'Disabled'})`, [
+                `Enable automatic detection of the current git repository for commands that support it? (${config.useCurrentRepo === true ? 'Enabled' : (config.useCurrentRepo === 'repo' ? 'Repo Only' : 'Disabled')})`, [
                 { name: 'Enable', value: '1' },
+                { name: 'Repo Only', value: 'repo' },
                 { name: 'Disable', value: '0' }
-            ], config.useCurrentRepo ? 0 : 1)
-        config.useCurrentRepo = useCurrentRepo === '1'
+            ], config.useCurrentRepo === true ? 0 : (config.useCurrentRepo === 'repo' ? 1 : 2))
+        config.useCurrentRepo = useCurrentRepo === 'repo' ? 'repo' : useCurrentRepo === '1'
     } else if (choice === 'skipLongCommandGeneration') {
         const skipLongCommandGeneration = await command()
             .choice(

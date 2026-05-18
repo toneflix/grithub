@@ -30,7 +30,7 @@ export interface IIssueFile {
 export interface IConfig {
     debug: boolean
     apiBaseURL: string
-    useCurrentRepo: boolean
+    useCurrentRepo: boolean | 'repo'
     timeoutDuration: number
     ngrokAuthToken?: string
     skipLongCommandGeneration?: boolean

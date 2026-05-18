@@ -87,7 +87,7 @@ export const useOctokit = () => {
     const [getConfig] = useConfig()
     const config = getConfig()
 
-    if (config.useCurrentRepo) {
+    if (config.useCurrentRepo === true) {
         const credential = getGitCredentialForCurrentRepo()
         if (credential && credential.password) {
             token = credential.password
