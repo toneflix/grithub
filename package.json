@@ -1,7 +1,7 @@
 {
     "name": "ghit",
     "type": "module",
-    "version": "0.1.22",
+    "version": "0.2.0",
     "description": "A CLI tool for managing GitHub repositories, issues, and workflows from your terminal, combining custom workflows with full GitHub API coverage.",
     "main": "bin/cli.mjs",
     "private": false,
@@ -54,8 +54,8 @@
     },
     "dependencies": {
         "@antfu/install-pkg": "^1.1.0",
-        "@h3ravel/musket": "^0.10.1",
-        "@h3ravel/shared": "^0.30.3",
+        "@h3ravel/musket": "^2.0.0",
+        "@h3ravel/shared": "^2.2.0",
         "@ngrok/ngrok": "^1.7.0",
         "@octokit/oauth-methods": "^6.0.2",
         "@octokit/openapi": "^22.0.0",
