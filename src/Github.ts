@@ -85,6 +85,12 @@ export async function signIn () {
 
         const octokit = new Octokit({
           auth: authentication.token,
+          request: {
+            headers: {
+              'X-GitHub-Api-Version': '2026-03-10',
+              'Accept': 'application/vnd.github+json',
+            },
+          },
         })
 
         const { data: user } = await octokit.request('/user')

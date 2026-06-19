@@ -72,7 +72,7 @@ describe('Hooks Test', () => {
             apiBaseURL: 'https://custom.api',
             timeoutDuration: 5000
         }
-        setConfig(config)
+        setConfig(config as never)
 
         expect(getConfig()).toEqual(config)
     })
@@ -105,6 +105,10 @@ describe('Hooks Test', () => {
                 baseUrl: config.apiBaseURL,
                 request: {
                     timeout: config.timeoutDuration,
+                    headers: {
+                        'X-GitHub-Api-Version': '2026-03-10',
+                        'Accept': 'application/vnd.github+json',
+                    },
                 },
             })
 
@@ -121,12 +125,16 @@ describe('Hooks Test', () => {
                 apiBaseURL: 'https://custom.api',
                 timeoutDuration: 10000
             }
-            setConfig(customConfig)
+            setConfig(customConfig as never)
 
             const octokitInstance = new Octokit({
                 baseUrl: customConfig.apiBaseURL,
                 request: {
                     timeout: customConfig.timeoutDuration,
+                    headers: {
+                        'X-GitHub-Api-Version': '2026-03-10',
+                        'Accept': 'application/vnd.github+json',
+                    },
                 },
             })
 
