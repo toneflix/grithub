@@ -34,6 +34,13 @@ export interface IConfig {
     timeoutDuration: number
     ngrokAuthToken?: string
     skipLongCommandGeneration?: boolean
+    /**
+     * When the current repo's remote is SSH, reuse the cached HTTPS git
+     * credential (SSH remote is converted to HTTPS) to authenticate API calls.
+     * Disable this if that credential may belong to a different account than the
+     * one you log in to ghit with; ghit then falls back to the logged-in user token.
+     */
+    reuseSshCredential?: boolean
 }
 
 export interface IRepoEntry {

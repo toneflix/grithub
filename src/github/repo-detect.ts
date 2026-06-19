@@ -7,26 +7,27 @@ import { execSync } from 'child_process'
  * 
  * @returns 
  */
-export function getGitCredentialForCurrentRepo () {
+export function getGitCredentialForCurrentRepo (opts?: { reuseSshCredential?: boolean }) {
     const repo = detectCurrentGitRepo()
     if (!repo) return null
 
-    // Only reuse a git credential when the repo is actually accessed over HTTPS.
-    // For SSH remotes git authenticates with an SSH key (not an API-usable token),
-    // so `git credential fill` would return an unrelated cached HTTPS credential
-    // from the OS keychain — which may belong to a different account than the one
-    // used for normal git operations. In that case there is no legitimate repo
-    // credential to reuse, so fall back to the logged-in user token.
+    // For SSH remotes git authenticates with an SSH key, not an API-usable token,
+    // so `git credential fill` resolves an unrelated cached HTTPS credential which
+    // may belong to a different account than the one used for normal git operations.
+    // Reusing it for SSH remotes is opt-in (`reuseSshCredential`); otherwise we skip
+    // the lookup and let the caller fall back to the logged-in user token.
     let remoteUrl: string
     try {
         remoteUrl = execSync('git config --get remote.origin.url', { encoding: 'utf8' }).trim()
     } catch {
         return null
     }
-    if (!/^https?:\/\//.test(remoteUrl)) return null
+    const isSsh = !/^https?:\/\//.test(remoteUrl)
+    if (isSsh && !opts?.reuseSshCredential) return null
 
     try {
-        const input = `url=${remoteUrl}\n\n`
+        // repo.clone_url is always HTTPS (SSH remotes are converted to HTTPS).
+        const input = `url=${repo.clone_url}\n\n`
         const output = execSync('git credential fill', {
             input,
             encoding: 'utf8'

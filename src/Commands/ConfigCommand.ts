@@ -21,6 +21,7 @@ export class ConfigCommand extends Command {
                 useCurrentRepo: true,
                 ngrokAuthToken: undefined,
                 skipLongCommandGeneration: true,
+                reuseSshCredential: true,
             }
             setConfig(config)
         }

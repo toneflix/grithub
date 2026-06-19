@@ -26,6 +26,11 @@ export const configChoices = (config: IConfig) => {
             description: `Enable or disable automatic detection of the current git repository for commands that support it (${config.useCurrentRepo === true ? 'Enabled' : (config.useCurrentRepo === 'repo' ? 'Repo Only' : 'Disabled')})`
         },
         {
+            name: 'Reuse SSH Credential',
+            value: 'reuseSshCredential',
+            description: `For SSH remotes, reuse the cached HTTPS git credential for API auth instead of the logged-in user token (${(config.reuseSshCredential ?? true) ? 'Enabled' : 'Disabled'})`
+        },
+        {
             name: 'Skip Long Command Generation',
             value: 'skipLongCommandGeneration',
             description: `Enable or disable skipping of long command generation when calling ${logger('generate:apis', ['grey', 'italic'])} (${config.skipLongCommandGeneration ? 'Enabled' : 'Disabled'})`
@@ -74,6 +79,14 @@ export const saveConfig = async (choice: keyof IConfig) => {
                 { name: 'Disable', value: '0' }
             ], config.useCurrentRepo === true ? 0 : (config.useCurrentRepo === 'repo' ? 1 : 2))
         config.useCurrentRepo = useCurrentRepo === 'repo' ? 'repo' : useCurrentRepo === '1'
+    } else if (choice === 'reuseSshCredential') {
+        const reuseSshCredential = await command()
+            .choice(
+                `Reuse the cached HTTPS credential for SSH remotes? (${(config.reuseSshCredential ?? true) ? 'Enabled' : 'Disabled'})`, [
+                { name: 'Enable', value: '1' },
+                { name: 'Disable', value: '0' }
+            ], (config.reuseSshCredential ?? true) ? 0 : 1)
+        config.reuseSshCredential = reuseSshCredential === '1'
     } else if (choice === 'skipLongCommandGeneration') {
         const skipLongCommandGeneration = await command()
             .choice(
@@ -90,6 +103,7 @@ export const saveConfig = async (choice: keyof IConfig) => {
             useCurrentRepo: true,
             ngrokAuthToken: undefined,
             skipLongCommandGeneration: true,
+            reuseSshCredential: true,
         }
     }
 

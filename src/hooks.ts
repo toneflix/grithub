@@ -40,6 +40,7 @@ export function useConfig () {
                 useCurrentRepo: true,
                 ngrokAuthToken: undefined,
                 skipLongCommandGeneration: true,
+                reuseSshCredential: true,
             }
         },
         (config: IConfig): IConfig => {
@@ -97,7 +98,9 @@ export const useOctokit = (scope: 'auto' | 'user' = 'auto') => {
     const config = getConfig()
 
     if (scope === 'auto' && config.useCurrentRepo === true) {
-        const credential = getGitCredentialForCurrentRepo()
+        const credential = getGitCredentialForCurrentRepo({
+            reuseSshCredential: config.reuseSshCredential ?? true,
+        })
         if (credential && credential.password) {
             token = credential.password
         }
