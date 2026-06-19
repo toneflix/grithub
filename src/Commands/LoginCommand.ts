@@ -32,7 +32,7 @@ export class LoginCommand extends Command {
         }
 
         if (token && user) {
-            const repos = await useOctokit().rest.repos.listForAuthenticatedUser()
+            const repos = await useOctokit('user').rest.repos.listForAuthenticatedUser()
 
             const repoName = await this.choice('Select default repository', repos.data.map(r => ({
                 name: r.full_name,

@@ -79,15 +79,24 @@ export function useShortcuts () {
 
 /**
  * Hook to get an authenticated Octokit instance.
- * 
- * @returns 
+ *
+ * Two authentication models are supported:
+ * - `'auto'` (default): honour the `useCurrentRepo` config. When it is `true`,
+ *   authenticate with the git credential of the current repository (current repo
+ *   scope), falling back to the logged-in user token.
+ * - `'user'`: always authenticate with the logged-in user token, ignoring the
+ *   current repo credential. Use this for operations that are about the
+ *   authenticated user themselves (login, listing the user's repos/orgs).
+ *
+ * @param scope
+ * @returns
  */
-export const useOctokit = () => {
+export const useOctokit = (scope: 'auto' | 'user' = 'auto') => {
     let token: string | undefined
     const [getConfig] = useConfig()
     const config = getConfig()
 
-    if (config.useCurrentRepo === true) {
+    if (scope === 'auto' && config.useCurrentRepo === true) {
         const credential = getGitCredentialForCurrentRepo()
         if (credential && credential.password) {
             token = credential.password

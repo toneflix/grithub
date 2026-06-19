@@ -23,7 +23,7 @@ export class SetRepoCommand extends Command {
 
         if (this.argument('name')) {
             const [ownerName, repoName] = extractRepoInfo(this.argument('name'));
-            ({ data: repo } = await useOctokit().rest.repos.get({
+            ({ data: repo } = await useOctokit('user').rest.repos.get({
                 owner: ownerName,
                 repo: repoName,
             }))
@@ -31,7 +31,7 @@ export class SetRepoCommand extends Command {
 
             if (this.option('org')) {
                 const spinner = this.spinner('Fetching your organizations...').start()
-                const orgs = await useOctokit().rest.orgs.listForAuthenticatedUser()
+                const orgs = await useOctokit('user').rest.orgs.listForAuthenticatedUser()
                 spinner.succeed(`${orgs.data.length} organizations fetched successfully.`)
 
                 const orgName = await this.choice('Select organization', orgs.data.map(o => ({
@@ -40,7 +40,7 @@ export class SetRepoCommand extends Command {
                 })), 0)
 
                 const orgReposSpinner = this.spinner(`Fetching repositories for organization ${orgName}...`).start()
-                const repos = await useOctokit().rest.repos.listForOrg({
+                const repos = await useOctokit('user').rest.repos.listForOrg({
                     org: orgName,
                 })
                 orgReposSpinner.succeed(`${repos.data.length} repositories fetched successfully.`)
@@ -56,7 +56,7 @@ export class SetRepoCommand extends Command {
             } else {
                 const spinner = this.spinner('Fetching your repositories...').start()
 
-                const repos = await useOctokit().rest.repos.listForAuthenticatedUser()
+                const repos = await useOctokit('user').rest.repos.listForAuthenticatedUser()
                 spinner.succeed(`${repos.data.length} repositories fetched successfully.`)
 
                 const repoName = await this.choice(
