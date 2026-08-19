@@ -1,4 +1,4 @@
-import { Command, Kernel } from '@h3ravel/musket'
+import { Application, Command, Kernel } from '@h3ravel/musket'
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { init, useDb, useDbPath } from '../src/db'
 import { mkdtempSync, rmSync } from 'fs'
@@ -8,7 +8,7 @@ import { afterAll } from 'vitest'
 import path from 'path'
 import { tmpdir } from 'os'
 
-class App {
+class App extends Application {
     registeredCommands: typeof Command[] = []
 }
 
