@@ -1,9 +1,10 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
-import { useCommand, useOctokit } from 'src/hooks'
+import { useCommand } from 'src/hooks'
 
 import { Command } from '@h3ravel/musket'
 import { Logger } from '@h3ravel/shared'
 import { extractRepoInfo } from 'src/helpers'
+import { listIssues } from 'src/github/actions'
 import path from 'node:path'
 
 export class IssuesDownloadCommand extends Command {
@@ -27,9 +28,8 @@ export class IssuesDownloadCommand extends Command {
             return void this.error('The "from" repository is required.')
         }
 
-        const { data: issues } = await useOctokit().issues.listForRepo({
-            owner,
-            repo,
+        const { issues } = await listIssues(owner, repo, {
+            state: 'open',
             labels: this.option('labeled') ? this.option('labeled').split(',').map((l: string) => l.trim()) : undefined,
         })
 

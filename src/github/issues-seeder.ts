@@ -4,6 +4,7 @@ import { useCommand, useOctokit } from 'src/hooks'
 import { Command } from '@h3ravel/musket'
 import { Logger } from '@h3ravel/shared'
 import dns from 'dns/promises'
+import { listIssues } from './actions'
 import fs from 'fs'
 import path from 'path'
 
@@ -406,44 +407,20 @@ export class IssuesSeeder {
      * @returns 
      */
     async fetchExistingIssues (owner: string, repo: string, state?: 'open' | 'closed' | 'all'): Promise<IIssue[]> {
-        const issues: IIssue[] = []
-        let page = 1
-        let hasMore = true
-
         const spinner = this.command.spinner('Fetching existing open issues...').start()
 
-        while (hasMore) {
-            try {
-                const { data } = await useOctokit().issues.listForRepo({
-                    owner,
-                    repo,
-                    state: state || 'open',
-                    per_page: 100,
-                    page: page,
-                })
+        try {
+            const { issues } = await listIssues(owner, repo, { state: state || 'open' })
+            spinner.succeed(`Found ${issues.length} existing issues.`)
 
-                issues.push(...data.filter(issue => !issue.pull_request))
-                spinner.stop()
+            return issues
+        } catch (error: any) {
+            spinner.stop()
+            this.command.warn(`ERROR: Failed to fetch existing issues: ${error.message}`)
+            this.command.warn('INFO: Proceeding without duplicate check...')
 
-                hasMore = issues.length % 100 === 0 && data.length === 100
-
-                if (hasMore) {
-                    page++
-                } else {
-                    hasMore = false
-                }
-            } catch (error: any) {
-                hasMore = false
-                spinner.stop()
-                this.command.warn(`ERROR: Failed to fetch existing issues: ${error.message}`)
-                this.command.warn('INFO: Proceeding without duplicate check...')
-            }
-
+            return []
         }
-
-        spinner.succeed(`Found ${issues.length} existing issues.`)
-
-        return issues
     }
 
     /**

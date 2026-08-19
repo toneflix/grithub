@@ -2,6 +2,7 @@
 
 import './utils/global'
 
+import { Application } from './Application'
 import Commands from './Commands/Commands'
 import { ConfigCommand } from './Commands/ConfigCommand'
 import { GenerateApisCommand } from './Commands/GenerateApisCommand'
@@ -22,13 +23,11 @@ import logo from './logo'
 import { useConfig } from './hooks'
 import { version } from '../package.json'
 
-class Application { }
-
 initAxios()
 Kernel.init(new Application(), {
     logo,
     version,
-    exceptionHandler (exception) {
+    exceptionHandler(exception) {
         const [getConfig] = useConfig()
         const config = getConfig()
 

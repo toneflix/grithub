@@ -1,9 +1,9 @@
-import { IIssue, IRepoEntry } from 'src/Contracts/Interfaces'
-import { useCommand, useOctokit } from 'src/hooks'
+import { deleteIssue, listIssues } from 'src/github/actions'
 
 import { Command } from '@h3ravel/musket'
-import { deleteIssue } from 'src/github/actions'
+import { IRepoEntry } from 'src/Contracts/Interfaces'
 import { read } from 'src/db'
+import { useCommand } from 'src/hooks'
 
 export class IssuesDeleteCommand extends Command {
     protected signature = `issues:delete
@@ -24,6 +24,10 @@ export class IssuesDeleteCommand extends Command {
         try {
             const issues = await this.loadIssues(repository)
             spinner.succeed(`${issues.length} issues fetched successfully.`)
+
+            if (issues.length < 1) {
+                return void this.info('No issues found in this repository.')
+            }
 
             const choices = await this.checkbox(`Select Issue${isDryRun ? ' (Dry Run)' : ''}`, issues.map(issue => ({
                 name: `#${issue.number}: ${issue.state === 'open' ? '🟢' : '🔴'} ${issue.title}`,
@@ -56,16 +60,9 @@ export class IssuesDeleteCommand extends Command {
         }
     }
 
-    async loadIssues (repository: [string, string]): Promise<IIssue[]> {
-        let issues: IIssue[] = [];
+    async loadIssues (repository: [string, string]) {
+        const { issues } = await listIssues(repository[0], repository[1], { state: 'all' })
 
-        ({ data: issues } = await useOctokit().issues.listForRepo({
-            repo: repository[1],
-            owner: repository[0],
-            per_page: 20,
-            state: 'all',
-        }))
-
-        return issues.filter(issue => !issue.pull_request)
+        return issues
     }
 }

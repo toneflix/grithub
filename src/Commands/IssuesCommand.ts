@@ -4,7 +4,7 @@ import { useCommand, useOctokit } from 'src/hooks'
 
 import { Command } from '@h3ravel/musket'
 import { IssuesSeeder } from 'src/github/issues-seeder'
-import { deleteIssue } from 'src/github/actions'
+import { deleteIssue, listIssues } from 'src/github/actions'
 import { read } from 'src/db'
 
 export class IssuesCommand extends Command {
@@ -23,25 +23,28 @@ export class IssuesCommand extends Command {
         const spinner = this.spinner('Fetching issues...').start()
 
         try {
-            let page = 1
+            let page: number | null = 1
             const issues: IIssue[] = []
 
             do {
-                const newIssues = await this.loadIssues(repository, page)
+                const { issues: newIssues, nextPage } = await this.loadIssues(repository, page)
                 issues.push(...newIssues)
+                page = nextPage
                 spinner.succeed(`${issues.length} issues fetched successfully.`)
+
+                if (issues.length < 1) {
+                    return void this.info('No issues found in this repository.').newLine()
+                }
 
                 const choice = await this.choice('Select Issue', issues.map(issue => ({
                     name: `#${issue.number}: ${issue.state === 'open' ? '🟢' : '🔴'} ${issue.title}`,
                     value: String(issue.number),
-                })).concat(issues.length === 20 ? [{
+                })).concat(page ? [{
                     name: 'Load more issues',
                     value: '>>',
                 }] : []), 0)
 
-                if (choice === '>>') {
-                    page++
-                } else {
+                if (choice !== '>>') {
                     const issue = issues.find(issue => String(issue.number) === choice)!
                     this.info(`#${issue.number}: ${issue.title}`).newLine()
 
@@ -127,7 +130,9 @@ export class IssuesCommand extends Command {
 
                     return
                 }
-            } while (issues.length === 20)
+
+                spinner.start('Fetching issues...')
+            } while (page)
         } catch (error: any) {
             spinner.stop()
 
@@ -135,17 +140,12 @@ export class IssuesCommand extends Command {
         }
     }
 
-    async loadIssues (repository: [string, string], page: number = 1): Promise<IIssue[]> {
-        let issues: IIssue[] = [];
-
-        ({ data: issues } = await useOctokit().issues.listForRepo({
+    async loadIssues (repository: [string, string], page: number = 1) {
+        return await listIssues(repository[0], repository[1], {
             page,
-            repo: repository[1],
-            owner: repository[0],
-            per_page: 20,
             state: 'all',
-        }))
-
-        return issues.filter(issue => !issue.pull_request)
+            limit: 20,
+            perPage: 20,
+        })
     }
 }

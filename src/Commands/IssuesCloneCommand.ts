@@ -1,10 +1,11 @@
 import { IIssueFile, IRepoEntry } from 'src/Contracts/Interfaces'
 import { buildIssueFile, extractRepoInfo, logger, wait } from 'src/helpers'
-import { useCommand, useOctokit } from 'src/hooks'
+import { useCommand } from 'src/hooks'
 
 import { Command } from '@h3ravel/musket'
 import { IssuesSeeder } from 'src/github/issues-seeder'
 import { Logger } from '@h3ravel/shared'
+import { listIssues } from 'src/github/actions'
 import { read } from 'src/db'
 
 export class IssuesCloneCommand extends Command {
@@ -30,9 +31,8 @@ export class IssuesCloneCommand extends Command {
             return void this.error('The "from" repository is required.')
         }
 
-        const { data: issues } = await useOctokit().issues.listForRepo({
-            owner,
-            repo,
+        const { issues } = await listIssues(owner, repo, {
+            state: 'open',
             sort: 'created',
             direction: 'asc',
             labels: this.option('labeled')
